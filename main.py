@@ -1,34 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox, font
 
-class WinnerWindow(tk.Toplevel):
-    def __init__(self, winner):
-        super().__init__()
-        self.title("Résultat")
-        self.configure(bg="white")
-        self.geometry("300x100")
-
-        message = f"Le joueur {winner} a gagné !" if winner else "Match nul !"
-
-        label = tk.Label(self, text=message, font=("Helvetica", 16, "bold"), bg="white")
-        label.pack(pady=10)
-
-        ok_button = tk.Button(self, text="OK", font=("Helvetica", 12, "bold"), command=self.destroy)
-        ok_button.pack(pady=5)
-
-        self.center_window()
-
-    def center_window(self):
-        self.update_idletasks()
-        width = self.winfo_width()
-        height = self.winfo_height()
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
-
-        x = (screen_width // 2) - (width // 2)
-        y = (screen_height // 2) - (height // 2)
-        self.geometry(f"{width}x{height}+{x}+{y}")
-
 class TicTacToe:
     def __init__(self):
         # Créez la fenêtre tkinter et définissez son titre
@@ -106,6 +78,34 @@ class TicTacToe:
 
     def run(self):
         self.window.mainloop()
+
+class WinnerWindow(tk.Toplevel):
+    def __init__(self, winner):
+        super().__init__()
+        self.title("Résultat")
+        self.configure(bg="white")
+        self.geometry("300x100")
+
+        message = f"Le joueur {winner} a gagné !" if winner else "Match nul !"
+
+        label = tk.Label(self, text=message, font=("Helvetica", 16, "bold"), bg="white")
+        label.pack(pady=10)
+
+        ok_button = tk.Button(self, text="OK", font=("Helvetica", 12, "bold"), command=self.destroy)
+        ok_button.pack(pady=5)
+
+        self.center_window()
+
+    def center_window(self):
+        self.update_idletasks()
+        width = self.winfo_width()
+        height = self.winfo_height()
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+
+        x = (screen_width // 2) - (width // 2)
+        y = (screen_height // 2) - (height // 2)
+        self.geometry(f"{width}x{height}+{x}+{y}")
 
 if __name__ == "__main__":
     tic_tac_toe = TicTacToe()
