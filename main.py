@@ -1,16 +1,30 @@
 import tkinter as tk
 from tkinter import font
+import ia
+from ia import ia, Difficulty
+
 
 # Constantes
 BACKGROUND_COLOR = "white"
 BUTTON_COLOR = "light blue"
+WINNER_FONT = ("Helvetica", 16, "bold")
+OK_BUTTON_FONT = ("Helvetica", 12, "bold")
 
 class TicTacToe:
+    def create_difficulty_buttons(self):
+        """Crée les boutons de sélection de la difficulté."""
+        self.difficulty_buttons = []
+        for i, difficulty in enumerate(ia.Difficulty):
+            button = tk.Button(self.window, text=difficulty.name, width=10, height=1, bg=BUTTON_COLOR, font=BUTTON_FONT,
+                               command=lambda d=difficulty: self.set_difficulty(d))
+            button.grid(row=3, column=i, padx=5, pady=5)
+            self.difficulty_buttons.append(button)
     def __init__(self):
         self.init_window()
         self.init_constants()
         self.init_game()
         self.create_buttons()
+        self.create_difficulty_buttons()  # assurez-vous que cette ligne est présente
         self.center_window()
 
     def init_window(self):
@@ -26,12 +40,14 @@ class TicTacToe:
         OK_BUTTON_FONT = ("Helvetica", 12, "bold")
 
     def init_game(self):
-        """Initialise les variables de jeu."""
+        self.player = "X"
+        self.board = [["" for _ in range(3)] for _ in range(3)]
+
+    def init_game(self):
         self.player = "X"
         self.board = [["" for _ in range(3)] for _ in range(3)]
 
     def create_buttons(self):
-        """Crée les boutons du plateau de jeu et les ajoute à la fenêtre."""
         self.buttons = [[None for _ in range(3)] for _ in range(3)]
         for row in range(3):
             for col in range(3):
@@ -39,8 +55,19 @@ class TicTacToe:
                 button.grid(row=row, column=col, padx=5, pady=5)
                 self.buttons[row][col] = button
 
+        # Create difficulty buttons
+        self.difficulty_buttons = []
+        for i, difficulty in enumerate(Difficulty):
+            button = tk.Button(self.window, text=difficulty.name, width=10, height=1, bg=BUTTON_COLOR, font=OK_BUTTON_FONT, command=lambda d=difficulty: self.set_difficulty(d))
+            button.grid(row=3, column=i, padx=5, pady=5)
+            self.difficulty_buttons.append(button)
+
+    def set_difficulty(self, difficulty):
+        """Définit la difficulté de l'IA."""
+        self.difficulty = difficulty
+        print(f"Difficulté définie sur {difficulty.name}")
+
     def center_window(self):
-        """Centre la fenêtre sur l'écran."""
         self.window.update_idletasks()
         width = self.window.winfo_width()
         height = self.window.winfo_height()
@@ -64,32 +91,49 @@ class TicTacToe:
                 self.reset_board()
             else:
                 self.player = "O" if self.player == "X" else "X"
+                self.ia_play()
 
-    def check_winner(self, player):
+    def ia_play(self):
+        flat_board = [1 if cell == "X" else 2 if cell == "O" else 0 for row in self.board for cell in row]
+        move = ia.get_ia_move(flat_board, 1 if self.player == "X" else 2, self.difficulty)
+        row, col = divmod(move, 3)
+        self.buttons[row][col].config(text=self.player, disabledforeground="black", state="disable")
+        self.board[row][col] = self.player
+
+        if self.check_winner(self.player):
+            winner_window = WinnerWindow(self.player)
+            self.reset_board()
+        elif self.is_full():
+            winner_window = WinnerWindow(None)
+            self.reset_board()
+        else:
+            self.player = "O" if self.player == "X" else "X"
+
+    def check_winner(self, sign):
         for row in range(3):
-            if all([self.board[row][col] == player for col in range(3)]):
+            if self.board[row][0] == self.board[row][1] == self.board[row][2] == sign:
                 return True
-
         for col in range(3):
-            if all([self.board[row][col] == player for row in range(3)]):
+            if self.board[0][col] == self.board[1][col] == self.board[2][col] == sign:
                 return True
-
-        if all([self.board[i][i] == player for i in range(3)]) or all([self.board[i][2 - i] == player for i in range(3)]):
+        if self.board[0][0] == self.board[1][1] == self.board[2][2] == sign:
             return True
-
+        if self.board[0][2] == self.board[1][1] == self.board[2][0] == sign:
+            return True
         return False
 
     def is_full(self):
-        return all([self.board[row][col] != "" for row in range(3) for col in range(3)])
+        for row in range(3):
+            for col in range(3):
+                if self.board[row][col] == "":
+                    return False
+        return True
 
     def reset_board(self):
         for row in range(3):
             for col in range(3):
                 self.buttons[row][col].config(text="", state="normal")
-                self.board[row][col] = ""
-
-    def run(self):
-        self.window.mainloop()
+        self.init_game()
 
 class WinnerWindow(tk.Toplevel):
     def __init__(self, winner):
@@ -129,5 +173,5 @@ class WinnerWindow(tk.Toplevel):
         self.geometry(f"{width}x{height}+{x}+{y}")
 
 if __name__ == "__main__":
-    tic_tac_toe = TicTacToe()
-    tic_tac_toe.run()
+    app = TicTacToe()
+    app.window.mainloop()
