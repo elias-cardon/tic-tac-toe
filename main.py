@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import font
 import ia
-from ia import ia, Difficulty
+from ia import Difficulty
 
 
 # Constantes
@@ -24,7 +24,7 @@ class TicTacToe:
         self.init_constants()
         self.init_game()
         self.create_buttons()
-        self.create_difficulty_buttons()  # assurez-vous que cette ligne est présente
+        self.create_difficulty_buttons()
         self.center_window()
 
     def init_window(self):
@@ -43,10 +43,6 @@ class TicTacToe:
         self.player = "X"
         self.board = [["" for _ in range(3)] for _ in range(3)]
 
-    def init_game(self):
-        self.player = "X"
-        self.board = [["" for _ in range(3)] for _ in range(3)]
-
     def create_buttons(self):
         self.buttons = [[None for _ in range(3)] for _ in range(3)]
         for row in range(3):
@@ -57,15 +53,20 @@ class TicTacToe:
 
         # Create difficulty buttons
         self.difficulty_buttons = []
-        for i, difficulty in enumerate(Difficulty):
-            button = tk.Button(self.window, text=difficulty.name, width=10, height=1, bg=BUTTON_COLOR, font=OK_BUTTON_FONT, command=lambda d=difficulty: self.set_difficulty(d))
+        for i, difficulty in enumerate(ia.Difficulty):
+            button = tk.Button(self.window, text=difficulty.name, width=10, height=1, bg=BUTTON_COLOR, font=BUTTON_FONT,
+                               command=lambda d=difficulty: self.set_difficulty(d))
             button.grid(row=3, column=i, padx=5, pady=5)
             self.difficulty_buttons.append(button)
 
+    def hide_difficulty_buttons(self):
+        for button in self.difficulty_buttons:
+            button.grid_remove()
+
     def set_difficulty(self, difficulty):
-        """Définit la difficulté de l'IA."""
         self.difficulty = difficulty
-        print(f"Difficulté définie sur {difficulty.name}")
+        self.ia_instance = ia.AI(difficulty)  # Crée une instance de la classe AI
+        self.hide_difficulty_buttons()
 
     def center_window(self):
         self.window.update_idletasks()
@@ -78,36 +79,31 @@ class TicTacToe:
         y = (screen_height // 2) - (height // 2)
         self.window.geometry(f"{width}x{height}+{x}+{y}")
 
-    def play(self, row, col):
-        if self.board[row][col] == "":
-            self.buttons[row][col].config(text=self.player, disabledforeground="black", state="disable")
-            self.board[row][col] = self.player
-
-            if self.check_winner(self.player):
-                winner_window = WinnerWindow(self.player)
-                self.reset_board()
-            elif self.is_full():
-                winner_window = WinnerWindow(None)
-                self.reset_board()
-            else:
-                self.player = "O" if self.player == "X" else "X"
-                self.ia_play()
-
-    def ia_play(self):
-        flat_board = [1 if cell == "X" else 2 if cell == "O" else 0 for row in self.board for cell in row]
-        move = ia.get_ia_move(flat_board, 1 if self.player == "X" else 2, self.difficulty)
-        row, col = divmod(move, 3)
-        self.buttons[row][col].config(text=self.player, disabledforeground="black", state="disable")
-        self.board[row][col] = self.player
-
-        if self.check_winner(self.player):
-            winner_window = WinnerWindow(self.player)
-            self.reset_board()
-        elif self.is_full():
-            winner_window = WinnerWindow(None)
+    def post_play(self):
+        if self.check_winner(self.player) or self.is_full():
+            winner_window = WinnerWindow(self.player if self.check_winner(self.player) else None)
             self.reset_board()
         else:
             self.player = "O" if self.player == "X" else "X"
+            if self.player == "O":
+                self.ia_play()
+
+    def play(self, row, col):
+        if self.make_move(row, col):
+            self.post_play()
+
+    def ia_play(self):
+        flat_board = [cell for row in self.board for cell in row]
+        move = self.ia_instance.ia(flat_board, 1 if self.player == "X" else 2)
+        if self.make_move(*divmod(move, 3)):
+            self.post_play()
+
+    def make_move(self, row, col):
+        if self.board[row][col] == "":
+            self.buttons[row][col].config(text=self.player, disabledforeground="black", state="disable")
+            self.board[row][col] = self.player
+            return True
+        return False
 
     def check_winner(self, sign):
         for row in range(3):
