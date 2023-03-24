@@ -21,23 +21,23 @@ class AI:
         self.difficulty = difficulty
 
     def ia(self, board, sign):
-        if self.difficulty == "easy":
+        if self.difficulty == Difficulty.EASY:
             return self.easy_ai(board, sign)
-        elif self.difficulty == "medium":
+        elif self.difficulty == Difficulty.MEDIUM:
             return self.medium_ai(board, sign)
-        elif self.difficulty == "hard":
+        elif self.difficulty == Difficulty.HARD:
             return self.hard_ai(board, sign)
-        elif self.difficulty == "extreme":
+        elif self.difficulty == Difficulty.EXTREME:
             return self.extreme_ai(board, sign)
         else:
             return False
 
     def easy_ai(self, board, sign):
-        empty_cells = [i for i, cell in enumerate(board) if cell == 0]
+        empty_cells = [i for i, cell in enumerate(board) if cell == "."]
         return random.choice(empty_cells)
 
     def medium_ai(self, board, sign):
-        empty_cells = [i for i, cell in enumerate(board) if cell == 0]
+        empty_cells = [i for i, cell in enumerate(board) if cell == "."]
         for cell in empty_cells:
             new_board = board.copy()
             new_board[cell] = sign
@@ -46,14 +46,14 @@ class AI:
         return random.choice(empty_cells)
 
     def hard_ai(self, board, sign):
-        empty_cells = [i for i, cell in enumerate(board) if cell == 0]
+        empty_cells = [i for i, cell in enumerate(board) if cell == "."]
         for cell in empty_cells:
             new_board = board.copy()
             new_board[cell] = sign
             if check_winner(new_board, sign):
                 return cell
 
-        opponent_sign = 1 if sign == 2 else 2
+        opponent_sign = "O" if sign == "X" else "X"
         for cell in empty_cells:
             new_board = board.copy()
             new_board[cell] = opponent_sign
@@ -87,16 +87,15 @@ class AI:
                 min_eval = float("inf")
                 opponent_sign = 1 if sign == 2 else 2
                 for i in range(9):
-                    for i in range(9):
-                        if board[i] == 0:
-                            new_board = board.copy()
-                            new_board[i] = opponent_sign
-                            eval = minimax(new_board, depth + 1, True, alpha, beta)
-                            min_eval = min(min_eval, eval)
-                            beta = min(beta, eval)
-                            if beta <= alpha:
-                                break
-                    return min_eval
+                    if board[i] == 0:
+                        new_board = board.copy()
+                        new_board[i] = opponent_sign
+                        eval = minimax(new_board, depth + 1, True, alpha, beta)
+                        min_eval = min(min_eval, eval)
+                        beta = min(beta, eval)
+                        if beta <= alpha:
+                            break
+                return min_eval
 
         best_value = float("-inf")
         best_move = None

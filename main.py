@@ -51,7 +51,10 @@ class TicTacToe:
                 button.grid(row=row, column=col, padx=5, pady=5)
                 self.buttons[row][col] = button
 
-        # Create difficulty buttons
+        self.create_difficulty_buttons()
+
+    def create_difficulty_buttons(self):
+        """Crée les boutons de sélection de la difficulté."""
         self.difficulty_buttons = []
         for i, difficulty in enumerate(ia.Difficulty):
             button = tk.Button(self.window, text=difficulty.name, width=10, height=1, bg=BUTTON_COLOR, font=BUTTON_FONT,
@@ -65,7 +68,8 @@ class TicTacToe:
 
     def set_difficulty(self, difficulty):
         self.difficulty = difficulty
-        self.ia_instance = ia.AI(difficulty)  # Crée une instance de la classe AI
+        self.ia_instance = ia.AI(
+            difficulty.name.lower())  # Crée une instance de la classe AI avec le nom de la difficulté en minuscules
         self.hide_difficulty_buttons()
 
     def center_window(self):
@@ -80,12 +84,15 @@ class TicTacToe:
         self.window.geometry(f"{width}x{height}+{x}+{y}")
 
     def post_play(self):
-        if self.check_winner(self.player) or self.is_full():
-            winner_window = WinnerWindow(self.player if self.check_winner(self.player) else None)
-            self.reset_board()
+        if self.check_winner(self.player):
+            messagebox.showinfo("Tic Tac Toe", f"{self.player} wins!")
+            self.new_game()
+        elif all([cell != "" for row in self.board for cell in row]):  # Ligne modifiée
+            messagebox.showinfo("Tic Tac Toe", "It's a tie!")
+            self.new_game()
         else:
             self.player = "O" if self.player == "X" else "X"
-            if self.player == "O":
+            if self.player == self.ai_player:
                 self.ia_play()
 
     def play(self, row, col):
@@ -94,9 +101,9 @@ class TicTacToe:
 
     def ia_play(self):
         flat_board = [cell for row in self.board for cell in row]
-        move = self.ia_instance.ia(flat_board, 1 if self.player == "X" else 2)
-        if self.make_move(*divmod(move, 3)):
-            self.post_play()
+        move = self.ia_instance.ia(flat_board, 1 if self.player == "O" else 2)  # Convert "O" to 1 and "X" to 2
+        row, col = divmod(move, 3)
+        self.play(row, col)
 
     def make_move(self, row, col):
         if self.board[row][col] == "":
