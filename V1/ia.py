@@ -32,12 +32,14 @@ class AI:
         else:
             return False
 
+        return self.best_move(board, player)
+
     def easy_ai(self, board, sign):
-        empty_cells = [i for i, cell in enumerate(board) if cell == "."]
+        empty_cells = [i for i, cell in enumerate(board) if cell == ""]  # Modification ici
         return random.choice(empty_cells)
 
     def medium_ai(self, board, sign):
-        empty_cells = [i for i, cell in enumerate(board) if cell == "."]
+        empty_cells = [i for i, cell in enumerate(board) if cell == ""]  # Modification ici
         for cell in empty_cells:
             new_board = board.copy()
             new_board[cell] = sign
@@ -46,7 +48,7 @@ class AI:
         return random.choice(empty_cells)
 
     def hard_ai(self, board, sign):
-        empty_cells = [i for i, cell in enumerate(board) if cell == "."]
+        empty_cells = [i for i, cell in enumerate(board) if cell == ""]  # Modification ici
         for cell in empty_cells:
             new_board = board.copy()
             new_board[cell] = sign
@@ -63,6 +65,8 @@ class AI:
         return random.choice(empty_cells)
 
     def extreme_ai(self, board, sign):
+        player = 1 if sign == "X" else 2
+
         def minimax(board, depth, maximizing_player, alpha, beta):
             if check_winner(board, 1):
                 return -1
@@ -107,5 +111,39 @@ class AI:
                 if move_value > best_value:
                     best_value = move_value
                     best_move = i
+
+        return best_move
+
+    def minimax(self, board, player, depth):
+        # Vérifiez si la position actuelle est une position terminale et renvoyez un score approprié
+        # ...
+
+        if player == "X":
+            best_score = float("-inf")
+            compare = max
+        else:
+            best_score = float("inf")
+            compare = min
+
+        for move in legal_moves(board):
+            new_board = apply_move(board, move, player)
+            next_player = "O" if player == "X" else "X"
+            score = self.minimax(new_board, next_player, depth + 1)
+            best_score = compare(best_score, score)
+
+        return best_score
+
+    def best_move(self, board, player):
+        best_score = float("-inf") if player == "X" else float("inf")
+        compare = max if player == "X" else min
+        best_move = None
+
+        for move in legal_moves(board):
+            new_board = apply_move(board, move, player)
+            next_player = "O" if player == "X" else "X"
+            score = self.minimax(new_board, next_player, 1)  # Commencez la profondeur à 1
+            if compare(score, best_score) == score:
+                best_score = score
+                best_move = move
 
         return best_move
